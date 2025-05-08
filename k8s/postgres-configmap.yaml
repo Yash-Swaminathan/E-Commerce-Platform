@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+data:
+  init-db.sql: |
+    CREATE DATABASE ecommerce;
+    \c ecommerce;
+    
+    -- Add your database initialization SQL here
+    -- This will be mounted to the PostgreSQL container 
