@@ -1,0 +1,18 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccount
+metadata:
+  name: product-service-sa
+  namespace: ecommerce
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: product-service-s3-access
+  namespace: ecommerce
+spec:
+  member: serviceAccount:product-service-sa@ecommerce.svc.cluster.local
+  role: roles/storage.objectViewer
+  resourceRef:
+    apiVersion: storage.cnrm.cloud.google.com/v1beta1
+    kind: StorageBucket
+    name: ecommerce-product-images 
