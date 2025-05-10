@@ -2,14 +2,41 @@
 
 A modern e-commerce platform built with microservices architecture, AWS integration, and automated CI/CD pipeline.
 
+## Features
+
+### Core Features
+- Product catalog with categories and search
+- User authentication and profile management
+- Shopping cart and checkout flow
+- Order management and tracking
+- Real-time inventory updates
+- Product image management with AWS S3
+- Secure payment processing
+
+### Technical Features
+- Microservices architecture (Spring Boot & Go)
+- Kubernetes orchestration
+- AWS cloud integration
+- Distributed tracing
+- Centralized logging
+- Metrics collection
+- Health monitoring
+- Automated CI/CD pipeline
+
 ## Prerequisites
 
+### Required Software
 - Java 17 or later
 - Go 1.19 or later
-- Docker
+- Docker and Docker Compose
 - Kubernetes cluster
+- AWS CLI
+- kubectl
+- Terraform
+
+### Required Accounts
 - AWS account with appropriate permissions
-- GitHub account
+- GitHub account for CI/CD
 
 ## Project Structure
 
@@ -19,7 +46,11 @@ A modern e-commerce platform built with microservices architecture, AWS integrat
 ├── infra/                 # Infrastructure as Code (Terraform)
 ├── k8s/                   # Kubernetes manifests
 ├── spring-services/       # Spring Boot microservices
+│   ├── user-service/     # User management service
+│   └── order-service/    # Order processing service
 ├── go-services/          # Go microservices
+│   ├── product-catalog/  # Product management service
+│   └── search/          # Search service
 ├── frontend/             # Frontend application
 └── payments/             # Payment service
 ```
@@ -35,7 +66,10 @@ A modern e-commerce platform built with microservices architecture, AWS integrat
 2. Set up AWS credentials:
    - Create an AWS account if you don't have one
    - Create an IAM user with appropriate permissions
-   - Configure AWS CLI with your credentials
+   - Configure AWS CLI with your credentials:
+     ```bash
+     aws configure
+     ```
 
 3. Set up GitHub repository:
    - Create a new repository on GitHub
@@ -64,6 +98,12 @@ A modern e-commerce platform built with microservices architecture, AWS integrat
    ```bash
    docker-compose up -d
    ```
+   This will start:
+   - PostgreSQL database
+   - Product Catalog service (Go)
+   - User Service (Spring Boot)
+   - Search Service (Go)
+   - Order Service (Spring Boot)
 
 2. Build and test services:
    ```bash
@@ -93,12 +133,31 @@ The infrastructure is managed using Terraform and includes:
 - AWS S3 bucket for product images
 - IAM roles and policies
 - Kubernetes cluster configuration
+- VPC and networking setup
+- Security groups and access controls
 
 ## Monitoring and Logging
 
 - Application metrics are exposed through Spring Boot Actuator
 - Logs are collected and can be viewed in your preferred logging solution
 - AWS CloudWatch integration for infrastructure monitoring
+- Health check endpoints for each service
+- Performance metrics collection
+
+## Service Architecture
+
+### Spring Boot Services
+- User Service: Handles user management and authentication
+- Order Service: Manages order processing and fulfillment
+
+### Go Services
+- Product Catalog: Manages product information and inventory
+- Search Service: Provides product search functionality
+
+### Frontend
+- Next.js application
+- Responsive design
+- Real-time updates
 
 ## Contributing
 
