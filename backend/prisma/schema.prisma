@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  imageUrl    String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  userId          String
+  totalAmount     Float
+  status          OrderStatus   @default(PENDING)
+  items           OrderItem[]
+  shippingAddress Address       @relation(fields: [addressId], references: [id])
+  addressId       String        @unique
+  payments        Payment[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  order     Order?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  orderId         String
+  amount          Float
+  status          PaymentStatus
+  paymentIntentId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  order           Order     @relation(fields: [orderId], references: [id])
+  refunds         Refund[]
+  disputes        Dispute[]
+
+  @@index([orderId])
+  @@index([paymentIntentId])
+}
+
+model Refund {
+  id            String    @id @default(uuid())
+  paymentId     String
+  amount        Float
+  reason        String
+  status        String
+  refundId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  payment       Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([refundId])
+}
+
+model Dispute {
+  id            String    @id @default(uuid())
+  paymentId     String
+  disputeId     String    @unique
+  amount        Float
+  status        String
+  evidence      Json
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  payment       Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([disputeId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  DISPUTED
+} 
