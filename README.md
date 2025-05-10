@@ -59,8 +59,8 @@ A modern e-commerce platform built with microservices architecture, AWS integrat
 
 1. Clone the repository:
    ```bash
-   git clone <your-repository-url>
-   cd ecommerce-platform
+   git clone https://github.com/Yash-Swaminathan/E-Commerce-Platform.git
+   cd E-Commerce-Platform
    ```
 
 2. Set up AWS credentials:
@@ -115,6 +115,104 @@ A modern e-commerce platform built with microservices architecture, AWS integrat
    cd go-services
    go test ./...
    ```
+
+## Kubernetes Setup
+
+### Local Development with Minikube
+
+1. Install Minikube:
+   ```bash
+   # For Windows (using PowerShell as Administrator)
+   choco install minikube
+
+   # For macOS
+   brew install minikube
+   ```
+
+2. Start Minikube:
+   ```bash
+   minikube start
+   ```
+
+3. Enable required addons:
+   ```bash
+   minikube addons enable ingress
+   minikube addons enable metrics-server
+   ```
+
+4. Apply Kubernetes configurations:
+   ```bash
+   # Create namespace
+   kubectl apply -f k8s/namespace.yaml
+
+   # Apply secrets and configmaps
+   kubectl apply -f k8s/secrets.yaml
+   kubectl apply -f k8s/configmaps.yaml
+
+   # Deploy services
+   kubectl apply -f k8s/deployments/
+   kubectl apply -f k8s/services/
+   ```
+
+5. Verify deployments:
+   ```bash
+   kubectl get all -n e-commerce
+   ```
+
+### Production Deployment
+
+1. Configure AWS EKS:
+   ```bash
+   # Update kubeconfig
+   aws eks update-kubeconfig --name e-commerce-cluster --region your-region
+   ```
+
+2. Apply production configurations:
+   ```bash
+   # Apply production-specific configurations
+   kubectl apply -f k8s/production/namespace.yaml
+   kubectl apply -f k8s/production/secrets.yaml
+   kubectl apply -f k8s/production/configmaps.yaml
+
+   # Deploy production services
+   kubectl apply -f k8s/production/deployments/
+   kubectl apply -f k8s/production/services/
+   ```
+
+3. Set up monitoring:
+   ```bash
+   # Deploy Prometheus
+   kubectl apply -f k8s/monitoring/prometheus/
+
+   # Deploy Grafana
+   kubectl apply -f k8s/monitoring/grafana/
+   ```
+
+4. Configure ingress:
+   ```bash
+   kubectl apply -f k8s/ingress/
+   ```
+
+### Kubernetes Commands
+
+Useful commands for managing the cluster:
+
+```bash
+# View all resources in namespace
+kubectl get all -n e-commerce
+
+# View logs for a pod
+kubectl logs -f <pod-name> -n e-commerce
+
+# Scale a deployment
+kubectl scale deployment <deployment-name> --replicas=3 -n e-commerce
+
+# View service endpoints
+kubectl get endpoints -n e-commerce
+
+# Check pod status
+kubectl describe pod <pod-name> -n e-commerce
+```
 
 ## Deployment
 
