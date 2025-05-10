@@ -1,0 +1,138 @@
+name: E-Commerce Platform CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: ecommerce-platform
+  KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build and Test Spring Services
+        run: |
+          cd spring-services
+          ./mvnw clean verify
+
+      - name: Build and Test Go Services
+        run: |
+          cd go-services
+          go test ./...
+
+  build-and-push-images:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Product Service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY/product-service:$IMAGE_TAG -f spring-services/product-service/Dockerfile .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY/product-service:$IMAGE_TAG
+
+      - name: Build and Push Other Services
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build and push other services similarly
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY/user-service:$IMAGE_TAG -f spring-services/user-service/Dockerfile .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY/user-service:$IMAGE_TAG
+
+  deploy:
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Update Kubernetes manifests
+        run: |
+          # Update image tags in Kubernetes manifests
+          sed -i "s|image: .*|image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}/product-service:${{ github.sha }}|" k8s/product-catalog.yaml
+          sed -i "s|image: .*|image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}/user-service:${{ github.sha }}|" k8s/user-service.yaml
+
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            k8s/namespace.yaml
+            k8s/aws-secrets.yaml
+            k8s/s3-configmap.yaml
+            k8s/product-service-iam.yaml
+            k8s/product-catalog.yaml
+            k8s/user-service.yaml
+          images: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}/product-service:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}/user-service:${{ github.sha }}
+
+  terraform-apply:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: |
+          cd infra/aws
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infra/aws
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infra/aws
+          terraform apply -auto-approve tfplan 
