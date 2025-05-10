@@ -1,121 +1,113 @@
 # E-Commerce Platform
 
-A microservice-based e-commerce platform built with Go and Spring Boot services, containerized with Docker and orchestrated by Kubernetes on AWS.
-
-## Architecture
-
-- **Go Services**
-  - Product Catalog Service
-  - Search Service
-- **Spring Boot Services**
-  - User Service
-  - Order Service
-- **Infrastructure**
-  - PostgreSQL Database
-  - AWS S3 for file storage
-  - Kubernetes (EKS) for orchestration
-  - Stripe for payment processing
+A modern e-commerce platform built with microservices architecture, AWS integration, and automated CI/CD pipeline.
 
 ## Prerequisites
 
-- Docker & Docker Compose
-- Node.js (for frontend local dev)
-- Java 17 (for Spring services local dev)
-- Go 1.21+ (for Go services local dev)
-- PostgreSQL (if not using Docker)
-- kubectl
-- AWS CLI
-- Stripe CLI (optional)
+- Java 17 or later
+- Go 1.19 or later
+- Docker
+- Kubernetes cluster
+- AWS account with appropriate permissions
+- GitHub account
 
-## Quick Start (with Docker Compose)
+## Project Structure
 
-```sh
-docker-compose up --build
+```
+.
+├── .github/workflows/     # CI/CD pipeline configurations
+├── infra/                 # Infrastructure as Code (Terraform)
+├── k8s/                   # Kubernetes manifests
+├── spring-services/       # Spring Boot microservices
+├── go-services/          # Go microservices
+├── frontend/             # Frontend application
+└── payments/             # Payment service
 ```
 
-- Product Catalog: [http://localhost:8080](http://localhost:8080)
-- User Service: [http://localhost:8081](http://localhost:8081)
-- Search Service: [http://localhost:8082](http://localhost:8082)
-- Order Service: [http://localhost:8083](http://localhost:8083)
-- PostgreSQL: `localhost:5432` (user: postgres, password: postgres, db: ecommerce)
+## Setup Instructions
 
-## Frontend
+1. Clone the repository:
+   ```bash
+   git clone <your-repository-url>
+   cd ecommerce-platform
+   ```
 
-1. `cd frontend`
-2. Create `.env.local`:
-    ```env
-    NEXT_PUBLIC_PRODUCT_SERVICE_URL=http://localhost:8080
-    NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8081
-    NEXT_PUBLIC_ORDER_SERVICE_URL=http://localhost:8083
-    ```
-3. Install dependencies: `npm install`
-4. Run: `npm run dev`
+2. Set up AWS credentials:
+   - Create an AWS account if you don't have one
+   - Create an IAM user with appropriate permissions
+   - Configure AWS CLI with your credentials
 
-## Local Development (without Docker)
+3. Set up GitHub repository:
+   - Create a new repository on GitHub
+   - Run the setup script:
+     ```bash
+     chmod +x setup-github.sh
+     ./setup-github.sh
+     ```
 
-- Start PostgreSQL and create the `ecommerce` database (see `infra/docker/init-db.sql`).
-- Set environment variables as above for each service.
-- Start each backend service in its directory.
+4. Configure GitHub Secrets:
+   - Go to your GitHub repository
+   - Navigate to Settings > Secrets and variables > Actions
+   - Add the following secrets:
+     - `AWS_ACCESS_KEY_ID`
+     - `AWS_SECRET_ACCESS_KEY`
+     - `KUBE_CONFIG`
 
-## Troubleshooting
-
-- **401/404 errors:** Check if the backend services are running and accessible on the correct ports.
-- **Database errors:** Ensure PostgreSQL is running and the `ecommerce` database exists.
-- **Port conflicts:** Make sure nothing else is using ports 8080-8083 or 5432.
+5. Enable GitHub Actions:
+   - Go to your GitHub repository
+   - Navigate to Actions
+   - Enable GitHub Actions
 
 ## Development
 
-### Go Services
-```bash
-cd go-services/product-catalog
-go mod tidy
-go run main.go
-```
+1. Start local development environment:
+   ```bash
+   docker-compose up -d
+   ```
 
-### Spring Boot Services
-```bash
-cd spring-services/user-service
-./mvnw spring-boot:run
-```
+2. Build and test services:
+   ```bash
+   # Spring services
+   cd spring-services
+   ./mvnw clean verify
 
-## Testing
-
-Run the test suite:
-```bash
-# Go services
-cd go-services/product-catalog
-go test ./...
-
-# Spring Boot services
-cd spring-services/user-service
-./mvnw test
-```
+   # Go services
+   cd go-services
+   go test ./...
+   ```
 
 ## Deployment
 
-1. Build Docker images:
-```bash
-docker-compose build
-```
+The platform is automatically deployed through GitHub Actions when changes are pushed to the main branch. The deployment process includes:
 
-2. Push to ECR:
-```bash
-aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
-docker-compose push
-```
+1. Building and testing services
+2. Creating Docker images
+3. Pushing images to Amazon ECR
+4. Deploying to Kubernetes
+5. Applying infrastructure changes
 
-3. Deploy to Kubernetes:
-```bash
-kubectl apply -f infra/k8s/
-```
+## Infrastructure
+
+The infrastructure is managed using Terraform and includes:
+
+- AWS S3 bucket for product images
+- IAM roles and policies
+- Kubernetes cluster configuration
+
+## Monitoring and Logging
+
+- Application metrics are exposed through Spring Boot Actuator
+- Logs are collected and can be viewed in your preferred logging solution
+- AWS CloudWatch integration for infrastructure monitoring
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+1. Create a new branch for your feature
+2. Make your changes
+3. Create a pull request
+4. Wait for CI/CD pipeline to validate changes
+5. Get code review approval
+6. Merge to main branch
 
 ## License
 
