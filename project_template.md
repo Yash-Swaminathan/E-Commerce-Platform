@@ -118,3 +118,60 @@ Execute in sequence:
 ---
 
 Use this template to generate the actual code, Dockerfiles, Kubernetes YAML, and CI/CD pipelines. 
+
+
+
+
+
+
+
+
+
+
+
+Add security configuration to the Spring Boot service
+
+Next steps:
+Add user registration and login endpoints.
+Implement JWT authentication filter.
+Add role-based access control in the security config.
+Use BCrypt for password encoding in registration and authentication.
+
+
+
+
+Implement the search service in Go
+
+
+
+
+
+Create the order service in Spring Boot  ---- IT WORKS RNNNNN
+
+
+
+
+Implement the controller layer with endpoints for creating and fetching orders.
+Add DTOs for order creation requests if needed.
+
+If you want, I can help you:
+Add a health check endpoint for the order service
+Scaffold REST endpoints for order creation and retrieval
+Let me know if you’d like to proceed with those or
+
+
+
+
+Implement payment processing with Stripe
+
+
+Set up Kubernetes manifests
+Frontend
+
+Ensure all your microservices are running
+Make sure Minikube is properly started (which we were working on earlier)
+Verify that the services are accessible at their respective ports
+
+
+
+Add AWS S3 integration for product images
