@@ -1,5 +1,8 @@
 # E-Commerce Platform
 
+**Project is not being deployed to avoid unnecessary AWS costs.**
+
+
 A modern e-commerce platform built with microservices architecture, AWS integration, and automated CI/CD pipeline.
 
 ### System Diagram
