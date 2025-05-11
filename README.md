@@ -3,6 +3,7 @@
 **Project is not being deployed to avoid unnecessary AWS costs.**
 
 **Target Users:** Small‑to‑medium retail and wholesale merchants looking for a scalable, cloud‑native solution to manage products, orders and customers end‑to‑end.  
+
 **Data Flow:** Whenever a new item is added, it’s persisted in the PostgreSQL database and immediately propagated across all services and made available on the platform in real time.
 
 
